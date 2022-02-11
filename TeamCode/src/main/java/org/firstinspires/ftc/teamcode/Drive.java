@@ -13,6 +13,8 @@ public class Drive extends OpMode {
 	DcMotor rightMotor;
 	DcMotor frontRight;
 
+	DcMotor suckingmMotor;
+	DcMotor handMotor;
 	DcMotor towerWheel;
 	Servo towerServo;
 
@@ -25,6 +27,7 @@ public class Drive extends OpMode {
 		rightMotor = hardwareMap.dcMotor.get("RightMotor");
 		frontRight = hardwareMap.dcMotor.get("FrontRight");
 
+		handMotor = hardwareMap.dcMotor.get("HandMotor");
 		towerWheel = hardwareMap.dcMotor.get("TowerWheel");
 		towerServo = hardwareMap.servo.get("TowerServo");
 
@@ -33,6 +36,16 @@ public class Drive extends OpMode {
 		rightMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 		frontRight.setDirection(DcMotorSimple.Direction.FORWARD);
 
+		leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+
+		handMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+		handMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		handMotor.setTargetPosition(0);
+		handMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+		handMotor.setPower(1);
 
 		setDriveMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		setDriveMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -54,8 +67,8 @@ public class Drive extends OpMode {
 
 	@Override
 	public void loop() {
-
-		arcadeDrive(gamepad1.right_stick_x, gamepad1.left_stick_x, gamepad1.left_stick_y);
+		handTest(100);
+		handMotor.setTargetPosition(0);
 
 		if (gamepad2.dpad_up) {
 			towerServo.setPosition(1);
@@ -68,6 +81,21 @@ public class Drive extends OpMode {
 		else if (gamepad2.left_bumper) {
 			towerWheelSpin(-1.3);
 		}
+
+		if (gamepad1.right_bumper) {
+			mecanum(1);
+		}
+		else if (gamepad1.left_bumper) {
+			mecanum(-1);
+		}
+		else {
+			arcadeDrive(gamepad1.right_stick_x, gamepad1.left_stick_x, gamepad1.left_stick_y);
+		}
+
+
+		telemetry.addData("HandPos", handMotor.getCurrentPosition());
+		telemetry.addData("HandPos T", handMotor.getTargetPosition());
+		telemetry.update();
 
 	}
 
@@ -89,4 +117,18 @@ public class Drive extends OpMode {
 		}
 	}
 
+	private void mecanum(double wereTo) {
+		leftMotor.setPower(+wereTo);
+		frontLeft.setPower(-wereTo);
+		rightMotor.setPower(-wereTo);
+		frontRight.setPower(+wereTo);
+	}
+
+	private void handTest(int pos) {
+		handMotor.setTargetPosition(pos);
+	}
+
+	public void handPos(double angle) {
+		handMotor.setTargetPosition((int)((angle + 45) * Constants.HandMotorConstants.tickPerDegree));
+	}
 }
