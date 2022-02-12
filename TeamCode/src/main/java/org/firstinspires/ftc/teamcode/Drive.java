@@ -94,10 +94,12 @@ public class Drive extends OpMode {
 			handMotor.setPower(-gamepad2.left_stick_y);
 			SpinMotor.setPower(-gamepad2.right_stick_x);
 
+		if (gamepad2.right_trigger>0.1) {
 			suckingMotor.setPower(-gamepad2.right_trigger);
-
-			suckingMotor.setPower(gamepad2.left_trigger);
-
+		}
+		else {
+			suckingMotor.setPower(gamepad2.left_trigger/2.5);
+		}
 
 		if (gamepad1.right_bumper) {
 			mecanum(1);
