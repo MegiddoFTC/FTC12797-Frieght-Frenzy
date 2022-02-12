@@ -48,6 +48,7 @@ public class Drive extends OpMode {
 		rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 		frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
+		handMotor.getCurrentPosition();
 		handMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 		SpinMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -85,10 +86,10 @@ public class Drive extends OpMode {
 			towerServo.setPosition(0);
 		}
 		if (gamepad2.right_bumper) {
-			towerWheelSpin(1.3);
+			towerWheelSpin(1);
 		}
 		else if (gamepad2.left_bumper) {
-			towerWheelSpin(-1.3);
+			towerWheelSpin(-1);
 		}
 
 			handMotor.setPower(-gamepad2.left_stick_y);
@@ -101,6 +102,15 @@ public class Drive extends OpMode {
 			suckingMotor.setPower(gamepad2.left_trigger/2.5);
 		}
 
+		if (gamepad2.a ){
+			SpinMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+			SpinMotor.setPower(1);
+			SpinMotor.setTargetPosition(0);
+//			SpinMotor.getTargetPosition();
+		}
+		else {
+			SpinMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+		}
 		if (gamepad1.right_bumper) {
 			mecanum(1);
 		}
