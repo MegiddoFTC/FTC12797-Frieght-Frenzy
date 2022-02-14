@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode;
 
-import android.database.MergeCursor;
-
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -9,11 +7,8 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import java.util.Set;
-
-@Autonomous (name = "BlueDuckAutonomy")
-public class Autonomi extends LinearOpMode {
-
+@Autonomous
+public class BlueHandAutonomy extends LinearOpMode{
 	DcMotor leftMotor;
 	DcMotor frontLeft;
 	DcMotor rightMotor;
@@ -44,6 +39,19 @@ public class Autonomi extends LinearOpMode {
 		rightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 		frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
+		handMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+		handMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+		handMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		handMotor.setTargetPosition(0);
+		handMotor.setPower(1);
+		handMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
+		suckingMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+		suckingMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		suckingMotor.setTargetPosition(0);
+		suckingMotor.setPower(1);
+		suckingMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+
 		leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 		frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 		rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -66,17 +74,20 @@ public class Autonomi extends LinearOpMode {
 		waitForStart();
 
 		SetDrivePower(0.25);
-		TowerUpDown(1);
-		MecanumLeft(0.15);
-		Forward2(0.47);
-		TowerWheel(1.3);
-		TowerUpDown(0);
-		SetDrivePower(0.25);
-		MecanumLeft(0.50);
-
-		FixTheParking(0.1);
-		SetDrivePower(1);
-		Forward(0.07);
+		MecanumRight(0.13);
+		HandUp(1300);
+		SetDrivePower(0.5);
+		Forward(0.56);
+		SuckOut(500);
+		HandUp(500);
+		Backwards(0.15);
+		TurnLeft(90);
+		Forward(1.5);
+		HandUp(-2);
+		TurnLeft(30);
+		SetDrivePower(0.1);
+		SuckIn(10000);
+		Forward(0.5);
 
 	}
 
@@ -89,26 +100,37 @@ public class Autonomi extends LinearOpMode {
 		WaitForIdle();
 	}
 
-	private void Forward2(double Meters) {
-		SetDrivePower(0.4);
-		rightMotor.setPower(0.5);
-
-		leftMotor.setTargetPosition((int) (leftMotor.getCurrentPosition() + Constants.MetersToTicks.ticksPerMeter * Meters));
-		frontLeft.setTargetPosition((int) (frontLeft.getCurrentPosition() + Constants.MetersToTicks.ticksPerMeter * Meters));
-		rightMotor.setTargetPosition((int) (rightMotor.getCurrentPosition() + Constants.MetersToTicks.ticksPerMeter * Meters));
-		frontRight.setTargetPosition((int) (frontRight.getCurrentPosition() + Constants.MetersToTicks.ticksPerMeter * Meters));
+	private void Backwards(double Meters) {
+		leftMotor.setTargetPosition((int) (leftMotor.getCurrentPosition() - Constants.MetersToTicks.ticksPerMeter * Meters));
+		frontLeft.setTargetPosition((int) (frontLeft.getCurrentPosition() - Constants.MetersToTicks.ticksPerMeter * Meters));
+		rightMotor.setTargetPosition((int) (rightMotor.getCurrentPosition() - Constants.MetersToTicks.ticksPerMeter * Meters));
+		frontRight.setTargetPosition((int) (frontRight.getCurrentPosition() - Constants.MetersToTicks.ticksPerMeter * Meters));
 
 		WaitForIdle();
 	}
 
+	private void HandUp(double Hight){
+		handMotor.setTargetPosition((int)(Hight));
+	}
+
+	private void SuckOut(double Spin) {
+		suckingMotor.setTargetPosition((int)(Spin));
+
+		WaitForIdle();
+	}
+
+	private void SuckIn(double Spin) {
+		suckingMotor.setTargetPosition((int)(-Spin));
+	}
+
 	private boolean IsBusy() {
-		return leftMotor.isBusy() || frontLeft.isBusy() || rightMotor.isBusy() || frontRight.isBusy() || towerWheel.isBusy();
+		return leftMotor.isBusy() || frontLeft.isBusy() || rightMotor.isBusy() || frontRight.isBusy() || towerWheel.isBusy() || handMotor.isBusy() || suckingMotor.isBusy();
 	}
 
 	private void WaitForIdle() {
 		while (IsBusy() && opModeIsActive()) {
-		telemetry.addData("Pos", (leftMotor.getCurrentPosition()) / Constants.MetersToTicks.ticksPerMeter);
-		telemetry.update();
+			telemetry.addData("Pos", (leftMotor.getCurrentPosition()) / Constants.MetersToTicks.ticksPerMeter);
+			telemetry.update();
 		}
 	}
 
@@ -118,6 +140,7 @@ public class Autonomi extends LinearOpMode {
 		rightMotor.setMode(mode);
 		frontRight.setMode(mode);
 	}
+
 
 	private void SetDrivePower(double power) {
 		leftMotor.setPower(power);
@@ -135,19 +158,15 @@ public class Autonomi extends LinearOpMode {
 		WaitForIdle();
 	}
 
-	private void TowerUpDown(int UpOrDown) {
-		towerServo.setPosition(UpOrDown);
+	private void MecanumRight(double Meters) {
+		MecanumLeft(-Meters);
 	}
 
-	private void TowerWheel(double Turns) {
-		towerWheel.setTargetPosition((int) (Constants.TowerConstants.ticks_per_revolution * Turns));
-
-		WaitForIdle();
-	}
-
-	private void FixTheParking(double Meters) {
-		frontLeft.setTargetPosition((int) (frontLeft.getCurrentPosition() - Constants.MetersToTicks.ticksPerMeter * Meters * 1.25));
-		frontRight.setTargetPosition((int) (frontRight.getCurrentPosition() + Constants.MetersToTicks.ticksPerMeter * Meters * 1.25));
+	private void TurnLeft(double Degrees) {
+		leftMotor.setTargetPosition( (int)(leftMotor.getCurrentPosition() - Constants.TurnByDegree.ticksPerDegree * Degrees));
+		frontLeft.setTargetPosition( (int)(frontLeft.getCurrentPosition() - Constants.TurnByDegree.ticksPerDegree * Degrees));
+		rightMotor.setTargetPosition( (int)(rightMotor.getCurrentPosition() + Constants.TurnByDegree.ticksPerDegree * Degrees));
+		frontRight.setTargetPosition( (int)(frontRight.getCurrentPosition() + Constants.TurnByDegree.ticksPerDegree * Degrees));
 
 		WaitForIdle();
 	}

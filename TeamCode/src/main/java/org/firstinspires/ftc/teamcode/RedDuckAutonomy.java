@@ -11,8 +11,8 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.Set;
 
-@Autonomous (name = "BlueDuckAutonomy")
-public class Autonomi extends LinearOpMode {
+@Autonomous
+public class RedDuckAutonomy extends LinearOpMode {
 
 	DcMotor leftMotor;
 	DcMotor frontLeft;
@@ -67,16 +67,11 @@ public class Autonomi extends LinearOpMode {
 
 		SetDrivePower(0.25);
 		TowerUpDown(1);
-		MecanumLeft(0.15);
-		Forward2(0.47);
-		TowerWheel(1.3);
+		Backwards(0.1725);
+		MecanumRight(0.2);
+		TowerWheel(-1.3);
 		TowerUpDown(0);
-		SetDrivePower(0.25);
-		MecanumLeft(0.50);
-
-		FixTheParking(0.1);
-		SetDrivePower(1);
-		Forward(0.07);
+		Backwards(0.50);
 
 	}
 
@@ -101,14 +96,23 @@ public class Autonomi extends LinearOpMode {
 		WaitForIdle();
 	}
 
+	private void Backwards(double Meters) {
+		leftMotor.setTargetPosition((int) (leftMotor.getCurrentPosition() - Constants.MetersToTicks.ticksPerMeter * Meters));
+		frontLeft.setTargetPosition((int) (frontLeft.getCurrentPosition() - Constants.MetersToTicks.ticksPerMeter * Meters));
+		rightMotor.setTargetPosition((int) (rightMotor.getCurrentPosition() - Constants.MetersToTicks.ticksPerMeter * Meters));
+		frontRight.setTargetPosition((int) (frontRight.getCurrentPosition() - Constants.MetersToTicks.ticksPerMeter * Meters));
+
+		WaitForIdle();
+	}
+
 	private boolean IsBusy() {
 		return leftMotor.isBusy() || frontLeft.isBusy() || rightMotor.isBusy() || frontRight.isBusy() || towerWheel.isBusy();
 	}
 
 	private void WaitForIdle() {
 		while (IsBusy() && opModeIsActive()) {
-		telemetry.addData("Pos", (leftMotor.getCurrentPosition()) / Constants.MetersToTicks.ticksPerMeter);
-		telemetry.update();
+			telemetry.addData("Pos", (leftMotor.getCurrentPosition()) / Constants.MetersToTicks.ticksPerMeter);
+			telemetry.update();
 		}
 	}
 
@@ -133,6 +137,10 @@ public class Autonomi extends LinearOpMode {
 		frontRight.setTargetPosition((int) (frontRight.getCurrentPosition() + Constants.MetersToTicks.ticksPerMeter * Meters * 1.25));
 
 		WaitForIdle();
+	}
+
+	private void MecanumRight(double Meters) {
+		MecanumLeft(-Meters);
 	}
 
 	private void TowerUpDown(int UpOrDown) {

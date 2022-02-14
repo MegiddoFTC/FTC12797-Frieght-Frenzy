@@ -60,7 +60,7 @@ public class Drive extends OpMode {
 		towerWheel.setDirection(DcMotorSimple.Direction.FORWARD);
 		towerWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		towerWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		towerWheel.setPower(0.7);
+		towerWheel.setPower(1);
 
 		spinMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		spinMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
@@ -99,7 +99,7 @@ public class Drive extends OpMode {
 			suckingMotor.setPower(-gamepad2.right_trigger);
 		}
 		else {
-			suckingMotor.setPower(gamepad2.left_trigger/1.6);
+			suckingMotor.setPower(gamepad2.left_trigger / 2);
 		}
 
 		if (gamepad2.a ){
