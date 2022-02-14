@@ -21,4 +21,11 @@ public final class Constants {
 		public final static double tickPerDegree = motorToGear / 360;
 
 	}
+
+	public final static class MetersToTicks {
+		public final static double TicksPerRotation = 28 * 36 / 18d * 22;
+		public final static double MeterPerRotation = 6 * Math.PI * 0.0254;
+		public final static double ticksPerMeter = TicksPerRotation / MeterPerRotation;
+	}
+
 }
