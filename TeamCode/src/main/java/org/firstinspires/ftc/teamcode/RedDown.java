@@ -12,7 +12,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import java.util.Set;
 
 @Autonomous
-public class RedDuckAutonomy extends LinearOpMode {
+public class RedDown extends LinearOpMode {
 	DcMotor leftMotor;
 	DcMotor frontLeft;
 	DcMotor rightMotor;
@@ -76,18 +76,18 @@ public class RedDuckAutonomy extends LinearOpMode {
 		waitForStart();
 
 		SetDrivePower(0.25);
-		Backwards(0.16);
+		Backwards(0.14);
 		TowerUpDown(1);
 		TowerWheel(-1.3);
 		TowerUpDown(0);
 		SetDrivePower(1);
-		Backwards(0.9);
+		Backwards(0.87);
 		SetDrivePower(0.5);
 		TurnLeft(90);
-		HandUp(1100);
-		Forward(0.65);
+		HandUp(400);
+		Forward(0.58);
 		SuckOut();
-		Backwards(0.75);
+		Backwards(0.68);
 		HandUp(0);
 		SetDrivePower(0.25);
 		MecanumRight(0.25);
@@ -154,7 +154,7 @@ public class RedDuckAutonomy extends LinearOpMode {
 	}
 
 	private void SuckOut() {
-		suckingMotor.setPower(0.5);
+		suckingMotor.setPower(0.2);
 		sleep(1000);
 		suckingMotor.setPower(0);
 	}
@@ -236,3 +236,4 @@ public class RedDuckAutonomy extends LinearOpMode {
 		WaitForIdle();
 	}
 }
+

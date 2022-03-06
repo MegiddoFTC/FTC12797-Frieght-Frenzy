@@ -3,7 +3,10 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.MotorControlAlgorithm;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 @TeleOp
@@ -19,6 +22,9 @@ public class Drive extends OpMode {
 	DcMotor towerWheel;
 	Servo towerServo;
 
+	boolean TowerIsUp = false;
+
+
 
 	@Override
 	public void init() {
@@ -27,7 +33,7 @@ public class Drive extends OpMode {
 		rightMotor = hardwareMap.get(DcMotor.class,"RightMotor");
 		frontRight = hardwareMap.get(DcMotor.class,"FrontRight");
 
-		handMotor = hardwareMap.get(DcMotor.class, "HandMotor");
+		handMotor = hardwareMap.get(DcMotorEx.class, "HandMotor");
 		suckingMotor = hardwareMap.get(DcMotor.class, "SuckingMotor");
 		towerWheel = hardwareMap.get(DcMotor.class, "TowerWheel");
 		spinMotor = hardwareMap.get(DcMotor.class, "SpinMotor");
@@ -43,12 +49,11 @@ public class Drive extends OpMode {
 		spinMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 		handMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
-		leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-		frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-		rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-		frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//		leftMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//		frontLeft.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//		rightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+//		frontRight.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
-		handMotor.getCurrentPosition();
 		handMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 		spinMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
@@ -59,13 +64,18 @@ public class Drive extends OpMode {
 		towerWheel.setTargetPosition(0);
 		towerWheel.setDirection(DcMotorSimple.Direction.FORWARD);
 		towerWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-		towerWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		towerWheel.setPower(1);
+		towerWheel.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 
 		spinMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		spinMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 		handMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+
+
+//		handMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION, new PIDFCoefficients(10, 5, 0, 0, MotorControlAlgorithm.LegacyPID));
 		handMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+
 	}
 
 	private void setDriveMode(DcMotor.RunMode mode) {
@@ -80,18 +90,32 @@ public class Drive extends OpMode {
 	public void loop() {
 	//	handTest(100);
 
-		if (gamepad2.dpad_up) {
-			towerServo.setPosition(1);
-		} else if (gamepad2.dpad_down) {
-			towerServo.setPosition(0);
-		}
-		if (gamepad2.right_bumper) {
-			towerWheelSpin(1.3);
-		}
-		else if (gamepad2.left_bumper) {
-			towerWheelSpin(-1.3);
+		if (gamepad2.dpad_left) {
+			handMotor.setTargetPosition(500);
 		}
 
+		if (gamepad2.dpad_up) {
+			towerServo.setPosition(1);
+			TowerIsUp = true;
+
+		} else if (gamepad2.dpad_down) {
+			towerServo.setPosition(0);
+			TowerIsUp = false;
+		}
+		if (gamepad2.right_bumper && TowerIsUp) {
+			//towerWheel.setTargetPosition(towerWheel.getCurrentPosition() + 1);
+			towerWheel.setPower(1);
+
+		}
+		else if (gamepad2.left_bumper && TowerIsUp) {
+			//towerWheel.setTargetPosition(towerWheel.getCurrentPosition() - 1);
+
+			towerWheel.setPower(-1);
+		}
+
+		else{
+			towerWheel.setPower(0);
+		}
 			handMotor.setPower(-gamepad2.left_stick_y);
 			spinMotor.setPower(-gamepad2.right_stick_x);
 
@@ -107,10 +131,17 @@ public class Drive extends OpMode {
 			spinMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 			spinMotor.setPower(1);
 			spinMotor.setTargetPosition(0);
-//			SpinMotor.getTargetPosition();
+
+			if (spinMotor.getCurrentPosition() < 15 && spinMotor.getCurrentPosition() > -15) {
+				handMotor.setTargetPosition(0);
+				handMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+				handMotor.setPower(1);
+				handMotor.setTargetPosition(0);
+			}
 		}
 		else {
 			spinMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+			handMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 		}
 		if (gamepad1.right_bumper) {
 			mecanum(1);
@@ -122,8 +153,11 @@ public class Drive extends OpMode {
 			arcadeDrive(gamepad1.right_stick_x, gamepad1.left_stick_x, gamepad1.left_stick_y);
 		}
 
-		telemetry.addData("HandPos", handMotor.getCurrentPosition()+8000000);
-		telemetry.addData("HandPos T", handMotor.getTargetPosition());
+		//telemetry.addData("PID", handMotor.getPIDFCoefficients(DcMotor.RunMode.RUN_TO_POSITION));
+		telemetry.addData("handPos", handMotor.getCurrentPosition());
+		telemetry.addData("spinPos", spinMotor.getCurrentPosition());
+		telemetry.addData("handPower", handMotor.getPower());
+		telemetry.addData("handTargetPos", handMotor.getTargetPosition());
 		telemetry.update();
 	}
 
@@ -158,7 +192,11 @@ public class Drive extends OpMode {
 
 	}
 
+
 	public void handPos(double angle) {
 		handMotor.setTargetPosition((int)((angle + 45) * Constants.HandMotorConstants.tickPerDegree));
 	}
 }
+
+
+

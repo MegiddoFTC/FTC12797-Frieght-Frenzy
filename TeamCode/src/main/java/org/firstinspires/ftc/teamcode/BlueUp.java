@@ -11,8 +11,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import java.util.Set;
 
-@Autonomous
-public class RedDuckAutonomy extends LinearOpMode {
+@Autonomous (name = "BlueCenetrAutonomy")
+
+public class BlueUp extends LinearOpMode {
 	DcMotor leftMotor;
 	DcMotor frontLeft;
 	DcMotor rightMotor;
@@ -76,23 +77,27 @@ public class RedDuckAutonomy extends LinearOpMode {
 		waitForStart();
 
 		SetDrivePower(0.25);
-		Backwards(0.16);
-		TowerUpDown(1);
-		TowerWheel(-1.3);
-		TowerUpDown(0);
-		SetDrivePower(1);
-		Backwards(0.9);
-		SetDrivePower(0.5);
-		TurnLeft(90);
+		SuckIn2();
+		MecanumRight(0.15);
 		HandUp(1100);
-		Forward(0.65);
+		SetDrivePower(0.5);
+		Forward(0.50);
 		SuckOut();
-		Backwards(0.75);
-		HandUp(0);
+		Backwards(0.45);
+		HandUp(6);
+		TurnRight(95);
+		Forward(1.15);
+		TowerUpDown(1);
+		TowerWheel(1.3);
+		TowerUpDown(0);
 		SetDrivePower(0.25);
-		MecanumRight(0.25);
-		FixTheParking(-0.05);
-		Backwards(0.05);
+		MecanumLeft(0.6);
+		Forward(0.05);
+
+
+		SetDrivePower(1);
+
+
 	}
 
 	private void Forward(double Meters) {
@@ -154,7 +159,7 @@ public class RedDuckAutonomy extends LinearOpMode {
 	}
 
 	private void SuckOut() {
-		suckingMotor.setPower(0.5);
+		suckingMotor.setPower(0.2);
 		sleep(1000);
 		suckingMotor.setPower(0);
 	}
@@ -162,6 +167,12 @@ public class RedDuckAutonomy extends LinearOpMode {
 	private void SuckIn() {
 		suckingMotor.setPower(-1);
 
+	}
+
+	private void SuckIn2() {
+		suckingMotor.setPower(-1);
+		sleep(1000);
+		suckingMotor.setPower(0);
 
 	}
 
