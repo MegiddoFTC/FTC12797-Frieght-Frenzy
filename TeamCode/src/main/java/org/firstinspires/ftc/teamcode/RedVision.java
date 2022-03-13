@@ -9,10 +9,23 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
+import org.opencv.core.Core;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Rect;
+import org.opencv.core.Scalar;
+import org.opencv.imgproc.Imgproc;
+import org.openftc.easyopencv.OpenCvCamera;
+import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
+import org.openftc.easyopencv.OpenCvPipeline;
+
 import java.util.Set;
 
 @Autonomous
-public class RedUp extends LinearOpMode {
+
+public class RedVision extends LinearOpMode {
 	DcMotor leftMotor;
 	DcMotor frontLeft;
 	DcMotor rightMotor;
@@ -23,6 +36,16 @@ public class RedUp extends LinearOpMode {
 	DcMotor handMotor;
 	DcMotor towerWheel;
 	Servo towerServo;
+
+	boolean CupSton = false;
+	OpenCvCamera camera;
+	boolean Left = false;
+	boolean Mid = false;
+	boolean Right = false;
+
+	private static final double[] hsvThresholdHue = {3.237410071942446, 34.607512438256585};
+	private static final double[] hsvThresholdSaturation = {65.73741162102, 255.0};
+	private static final double[] hsvThresholdValue = {0.0, 255.0};
 
 	@Override
 	public void runOpMode() throws InterruptedException {
@@ -37,6 +60,8 @@ public class RedUp extends LinearOpMode {
 		towerWheel = hardwareMap.get(DcMotor.class, "TowerWheel");
 		spinMotor = hardwareMap.get(DcMotor.class, "SpinMotor");
 		towerServo = hardwareMap.get(Servo.class, "TowerServo");
+
+		camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName.class, "Webcam"));
 
 		leftMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 		frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -62,7 +87,7 @@ public class RedUp extends LinearOpMode {
 		towerWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		towerWheel.setTargetPosition(0);
 		towerWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		towerWheel.setPower(1);
+		towerWheel.setPower(0.8);
 
 		leftMotor.setTargetPosition(0);
 		frontLeft.setTargetPosition(0);
@@ -73,26 +98,204 @@ public class RedUp extends LinearOpMode {
 		SetMode(DcMotor.RunMode.RUN_TO_POSITION);
 
 
+		camera.openCameraDeviceAsync(new OpenCvCamera.AsyncCameraOpenListener() {
+			@Override
+			public void onOpened() {
+				camera.startStreaming(1280, 720, OpenCvCameraRotation.UPRIGHT);
+				camera.setPipeline(new OpenCvPipeline() {
+
+					@Override
+					public Mat processFrame(Mat input) {
+
+
+
+						Mat filtered = new Mat();
+						hsvThreshold(input, hsvThresholdHue, hsvThresholdSaturation, hsvThresholdValue, filtered);
+
+
+						Mat masked = new Mat();
+						mask(input, filtered, masked);
+
+
+						telemetry.addData("pixelsLeft", (Core.countNonZero(filtered.submat(new Rect(0, 313, 383, 402)))));
+						telemetry.addData("pixelsMid", (Core.countNonZero(filtered.submat(new Rect(413, 313, 455, 402)))));
+						telemetry.addData("pixelsRight", (Core.countNonZero(filtered.submat(new Rect(964, 313, 316, 402)))));
+						telemetry.update();
+
+
+
+						Imgproc.rectangle(input, new Rect(0, 313, 383, 402), new Scalar(255, 0, 0));
+						Imgproc.rectangle(input, new Rect(413, 313, 455, 402), new Scalar(255, 0, 0));
+						Imgproc.rectangle(input, new Rect(964, 313, 316, 402), new Scalar(255, 0, 0));
+
+
+						Mat viewLeft = filtered.submat(new Rect(0, 313, 383, 402));
+						Mat viewMid = filtered.submat(new Rect(413, 313, 455, 402));
+						Mat viewRight = filtered.submat(new Rect(964, 313, 316, 402));
+						if (Core.countNonZero(viewLeft) > 30000) {
+							Left = true;
+							Mid = false;
+							Right = false;
+						}
+						else if (Core.countNonZero(viewMid) > 40000) {
+							Left = false;
+							Mid = true;
+							Right = false;
+						}
+						else if (Core.countNonZero(viewRight) > 20000) {
+							Left = false;
+							Mid = false;
+							Right = true;
+						}
+
+
+						input.release();
+						filtered.release();
+						return masked;
+
+					}
+
+					private void hsvThreshold(Mat input, double[] hue, double[] sat, double[] val,
+											  Mat out) {
+						Imgproc.cvtColor(input, out, Imgproc.COLOR_RGB2HSV );
+						Core.inRange(out, new Scalar(hue[0], sat[0], val[0]),
+								new Scalar(hue[1], sat[1], val[1]), out);
+					}
+
+					private void mask(Mat input, Mat mask, Mat output) {
+						mask.convertTo(mask, CvType.CV_8UC1);
+						Core.bitwise_xor(output, output, output);
+						input.copyTo(output, mask);
+					}
+				});
+			}
+
+
+			@Override
+			public void onError(int errorCode) {
+
+
+			}
+
+
+		});
+
+
 		waitForStart();
 
-		SetDrivePower(0.25);
-		Backwards(0.14);
-		TowerUpDown(1);
-		TowerWheel(-1.3);
-		TowerUpDown(0);
-		SetDrivePower(1);
-		Backwards(0.95);
-		SetDrivePower(0.5);
-		TurnLeft(90);
-		HandUp(1100);
-		Forward(0.65);
-		SuckOut();
-		Backwards(0.73);
-		HandUp(0);
-		SetDrivePower(0.25);
-		MecanumRight(0.25);
-		FixTheParking(-0.05);
-		Backwards(0.05);
+//		SetDrivePower(1);
+//		Forward(0.2);
+//		TurnLeft(91);
+//		Forward(0.6);
+//		SetDrivePower(0.25);
+//		TurnLeft(90);
+//		TowerUpDown(1);
+//		sleep(500);
+//		MecanumRight(0.0453);
+//		TowerWheel(-1.3);
+//		TowerUpDown(0);
+//		sleep(500);
+//		SetDrivePower(1);
+//		MecanumLeft2(0.1);
+//		sleep(500);
+//		TurnLeft(125);
+//		SuckIn2();
+//		HandUp(1200);
+//		Forward(0.86);
+//		SuckOut();
+//		TurnRight(40);
+//		Backwards(1);
+//		MecanumLeft(0.05);
+//		HandUp(0);
+//		sleep(100000000);
+
+
+
+		if (Left == true) {
+			telemetry.addData("Down", true);
+			telemetry.update();
+
+			SetDrivePower(1);
+			Forward(0.12);
+			TurnLeft(90.5);
+			Forward(0.62);
+			TowerUpDown(1);
+			SetDrivePower(0.5);
+			TurnLeft(72);
+			TowerWheel(-1.3);
+			TowerUpDown(0);
+			sleep(500);
+			SetDrivePower(1);
+			Backwards(0.15);
+			sleep(500);
+			TurnLeft(142);
+			SuckIn2();
+			HandUp(400);
+			Forward(0.71);
+			SuckOut();
+			TurnRight(40);
+			Backwards(0.95);
+			HandUp(0);
+			sleep(100000000);
+		}
+
+		if (Mid == true) {
+			telemetry.addData("Mid", true);
+			telemetry.update();
+
+			SetDrivePower(1);
+			Forward(0.12);
+			TurnLeft(90.5);
+			Forward(0.62);
+			TowerUpDown(1);
+			SetDrivePower(0.5);
+			TurnLeft(72);
+			TowerWheel(-1.3);
+			TowerUpDown(0);
+			sleep(500);
+			SetDrivePower(1);
+			Backwards(0.15);
+			sleep(500);
+			TurnLeft(142);
+			SuckIn2();
+			HandUp(730);
+			Forward(0.70);
+			SuckOut();
+			TurnRight(40);
+			Backwards(0.95);
+			HandUp(0);
+			sleep(100000000);
+		}
+
+		if (Right == true) {
+			telemetry.addData("Up", true);
+			telemetry.update();
+
+			SetDrivePower(1);
+			Forward(0.12);
+			TurnLeft(90.5);
+			Forward(0.62);
+			TowerUpDown(1);
+			SetDrivePower(0.5);
+			TurnLeft(72);
+			TowerWheel(-1.3);
+			TowerUpDown(0);
+			sleep(500);
+			SetDrivePower(1);
+			Backwards(0.15);
+			sleep(500);
+			TurnLeft(142);
+			SuckIn2();
+			HandUp(1150);
+			Forward(0.79);
+			SuckOut();
+			TurnRight(40);
+			Backwards(0.95);
+			HandUp(0);
+			sleep(100000000);
+		}
+
+
 	}
 
 	private void Forward(double Meters) {
@@ -155,13 +358,19 @@ public class RedUp extends LinearOpMode {
 
 	private void SuckOut() {
 		suckingMotor.setPower(0.2);
-		sleep(1000);
+		sleep(700);
 		suckingMotor.setPower(0);
 	}
 
 	private void SuckIn() {
 		suckingMotor.setPower(-1);
 
+	}
+
+	private void SuckIn2() {
+		suckingMotor.setPower(-1);
+		sleep(1000);
+		suckingMotor.setPower(0);
 
 	}
 
@@ -200,6 +409,16 @@ public class RedUp extends LinearOpMode {
 		WaitForIdle();
 	}
 
+	private void MecanumLeft2(double Meters) {
+		leftMotor.setTargetPosition((int) (leftMotor.getCurrentPosition() + Constants.MetersToTicks.ticksPerMeter * Meters * 1.25));
+		frontLeft.setTargetPosition((int) (frontLeft.getCurrentPosition() - Constants.MetersToTicks.ticksPerMeter * Meters * 1.25));
+		rightMotor.setTargetPosition((int) (rightMotor.getCurrentPosition() - Constants.MetersToTicks.ticksPerMeter * Meters * 1.25));
+		frontRight.setTargetPosition((int) (frontRight.getCurrentPosition() + Constants.MetersToTicks.ticksPerMeter * Meters * 1.25));
+
+
+	}
+
+
 	private void MecanumRight(double Meters) {
 		MecanumLeft(-Meters);
 	}
@@ -215,16 +434,16 @@ public class RedUp extends LinearOpMode {
 	private void TurnRight(double Degrees) {
 		TurnLeft(-Degrees);
 
-		WaitForIdle();
+//		WaitForIdle();
 	}
 
 	private void TowerUpDown(int UpOrDown) {
 		towerServo.setPosition(UpOrDown);
-		sleep(3000);
+//		sleep(3000);
 	}
 
 	private void TowerWheel(double Turns) {
-		towerWheel.setTargetPosition((int) (towerWheel.getCurrentPosition() + Constants.TowerConstants.ticks_per_revolution * Turns));
+		towerWheel.setTargetPosition((int) (Constants.TowerConstants.ticks_per_revolution * Turns));
 
 		WaitForIdle();
 	}

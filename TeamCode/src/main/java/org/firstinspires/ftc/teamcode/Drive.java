@@ -90,6 +90,21 @@ public class Drive extends OpMode {
 	public void loop() {
 	//	handTest(100);
 
+		if (gamepad2.y) {
+			handMotor.setTargetPosition(0);
+			handMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+			handMotor.setPower(1);
+			while (gamepad2.y) {
+				handMotor.setTargetPosition(1250);
+			}
+		}
+		else {
+			handMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+		}
+		if (gamepad2.x) {
+			handMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+		}
+
 		if (gamepad2.dpad_left) {
 			handMotor.setTargetPosition(500);
 		}
@@ -113,9 +128,11 @@ public class Drive extends OpMode {
 			towerWheel.setPower(-1);
 		}
 
-		else{
+		else {
 			towerWheel.setPower(0);
 		}
+
+
 			handMotor.setPower(-gamepad2.left_stick_y);
 			spinMotor.setPower(-gamepad2.right_stick_x);
 
@@ -125,6 +142,9 @@ public class Drive extends OpMode {
 		else {
 			suckingMotor.setPower(gamepad2.left_trigger / 2);
 		}
+
+
+
 
 		if (gamepad2.a ){
 			spinMotor.setTargetPosition(0);
@@ -141,7 +161,7 @@ public class Drive extends OpMode {
 		}
 		else {
 			spinMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-			handMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+			 handMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 		}
 		if (gamepad1.right_bumper) {
 			mecanum(1);

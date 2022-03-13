@@ -43,9 +43,9 @@ public class BlueVision extends LinearOpMode {
 	boolean Mid = false;
 	boolean Right = false;
 
-	private static final double[] hsvThresholdHue = {0.0, 180.0};
-	private static final double[] hsvThresholdSaturation = {0.0, 31.62115349297639};
-	private static final double[] hsvThresholdValue = {181.92446024941026, 255.0};
+	private static final double[] hsvThresholdHue = {3.237410071942446, 34.607512438256585};
+	private static final double[] hsvThresholdSaturation = {65.73741162102, 255.0};
+	private static final double[] hsvThresholdValue = {0.0, 255.0};
 
 	@Override
 	public void runOpMode() throws InterruptedException {
@@ -87,7 +87,7 @@ public class BlueVision extends LinearOpMode {
 		towerWheel.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
 		towerWheel.setTargetPosition(0);
 		towerWheel.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-		towerWheel.setPower(1);
+		towerWheel.setPower(0.6);
 
 		leftMotor.setTargetPosition(0);
 		frontLeft.setTargetPosition(0);
@@ -137,12 +137,12 @@ public class BlueVision extends LinearOpMode {
 							Mid = false;
 							Right = false;
 						}
-						else if (Core.countNonZero(viewMid) > 60000) {
+						else if (Core.countNonZero(viewMid) > 40000) {
 							Left = false;
 							Mid = true;
 							Right = false;
 						}
-						else if (Core.countNonZero(viewRight) > 30000) {
+						else if (Core.countNonZero(viewRight) > 20000) {
 							Left = false;
 							Mid = false;
 							Right = true;
@@ -157,7 +157,7 @@ public class BlueVision extends LinearOpMode {
 
 					private void hsvThreshold(Mat input, double[] hue, double[] sat, double[] val,
 											  Mat out) {
-						Imgproc.cvtColor(input, out, Imgproc.COLOR_BGR2HSV);
+						Imgproc.cvtColor(input, out, Imgproc.COLOR_RGB2HSV );
 						Core.inRange(out, new Scalar(hue[0], sat[0], val[0]),
 								new Scalar(hue[1], sat[1], val[1]), out);
 					}
@@ -231,7 +231,9 @@ public class BlueVision extends LinearOpMode {
 			Backwards(0.73);
 			HandDown(0);
 			SetDrivePower(0.2);
-			MecanumLeft(0.38);
+			SetDrivePower(1);
+			MecanumLeft(0.45);
+			Backwards(0.1);
 			sleep(5000);
 		}
 
@@ -249,18 +251,20 @@ public class BlueVision extends LinearOpMode {
 			TowerUpDown(0);
 			Backwards(0.1);
 			SetDrivePower(1);
-			TurnLeft(92);
+			TurnLeft(90);
 			Forward(0.97);
 			TurnLeft(90);
 			SuckIn2();
 			HandUp(730);
 			sleep(200);
-			Forward(0.38);
+			Forward(0.40);
 			SuckOut();
-			Backwards(0.73);
+			Backwards(0.71);
 			HandDown(0);
 			SetDrivePower(0.2);
-			MecanumLeft(0.40);
+			SetDrivePower(1);
+			MecanumLeft(0.45);
+			Backwards(0.1);
 			sleep(5000);
 		}
 		if (Right == true) {
@@ -272,7 +276,7 @@ public class BlueVision extends LinearOpMode {
 			sleep(100);
 			TowerUpDown(1);
 			SetDrivePower(0.5);
-			Forward(0.397);
+			Forward(0.4);
 			TowerWheel(1.3);
 			TowerUpDown(0);
 			Backwards(0.1);
@@ -288,7 +292,9 @@ public class BlueVision extends LinearOpMode {
 			Backwards(0.85);
 			HandDown(0);
 			SetDrivePower(0.2);
-			MecanumLeft(0.40);
+			SetDrivePower(1);
+			MecanumLeft(0.45);
+			Backwards(0.1);
 			sleep(5000);
 		}
 
